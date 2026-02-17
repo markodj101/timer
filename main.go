@@ -3,7 +3,6 @@ package main
 import (
 	"embed"
 	_ "embed"
-	"fmt"
 	"log"
 	"time"
 
@@ -48,6 +47,7 @@ func main() {
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
+		
 	})
 
 	// Create a new window with the necessary options.
@@ -67,28 +67,48 @@ func main() {
 	})
 
 	mainWin.OnWindowEvent(events.Common.WindowClosing, func(event *application.WindowEvent) {
-		log.Println("Uspjehh")
 		app.Quit()
 	})
 
 	displayWindow := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "Timer Display",
-		X: -1920,
-		Y: 0,
 		AlwaysOnTop:  true,
 		Frameless: true,
 		URL: "/display",
-		
-		
 		
 	})
 
 	displayWindow.Fullscreen()
 
-	
+	app.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(event *application.ApplicationEvent){
+		screens := app.Screen.GetAll();
+		log.Printf("Broj ekrana: %d", len(screens))
+
+		targetX:=0
+		found := false
+
+		if len(screens)>1 {
+			for _, screen := range screens {
+				log.Printf("Screen: %s | bounds: %v | primary: %v", screen.Name, screen.Bounds, screen.IsPrimary)
+				if screen.Bounds.X != 0{
+					targetX = screen.Bounds.X
+					found = true
+					log.Printf("Found secondary screen at X: %d", targetX)
+					break
+				}
+			}
+
+			if !found {
+            log.Printf("Sekundarni monitor nije pronadjen, ostajem na primarnom.")
+        }
+			displayWindow.SetPosition(targetX, 0)
+		}
+	})
+
 	// Create a goroutine that emits an event containing the current time every second.
 	// The frontend can listen to this event and update the UI accordingly.
 	go func() {
+		
 		for {
 			now := time.Now().Format(time.RFC1123)
 			app.Event.Emit("time", now)
@@ -99,17 +119,8 @@ func main() {
 	// Run the application. This blocks until the application has been exited.
 	err := app.Run()
 
-	screens := app.Screen.GetAll()
-
-for _, screen := range screens {
-    fmt.Printf("ID: %s\n", screen.ID)
-    fmt.Printf("Name: %s\n", screen.Name)
-    fmt.Printf("Size: %dx%d\n", screen.Size.Height, screen.Size.Width)
-    fmt.Printf("Position: %d,%d\n", screen.X, screen.Y)
-    fmt.Printf("Scale: %.2f\n", screen.ScaleFactor)
-    fmt.Printf("Primary: %v\n", screen.IsPrimary)
-    fmt.Println("---")
-}
+	
+	
 
 	// If an error occurred while running the application, log it and exit.
 	if err != nil {
