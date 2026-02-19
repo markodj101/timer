@@ -27,6 +27,7 @@ func main() {
 		Description: "A demo of using raw HTML & CSS",
 		Services: []application.Service{
 			application.NewService(&GreetService{}),
+			application.NewService(&FileReading{}),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -47,6 +48,10 @@ func main() {
 		},
 		BackgroundColour: application.NewRGB(27, 38, 54),
 		URL:              "/",
+		MinWidth: 1024,
+		MinHeight: 800,
+		Width:  1024,          // Početna širina
+        Height: 800,
 	})
 
 
