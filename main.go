@@ -58,7 +58,6 @@ func main() {
 
 	displayWindow := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "Timer Display",
-		AlwaysOnTop:  true,
 		URL: "/display",
 		Hidden: true,
 		
@@ -84,7 +83,6 @@ func main() {
 			displayWindow.SetPosition(0,0)
 			displayWindow.Fullscreen()
 			displayWindow.Show()
-			displayWindow.SetAlwaysOnTop(false)
 			return
 		}
 
@@ -108,9 +106,10 @@ func main() {
 			targetScreen = primary
 		}
 
-		displayWindow.Show()
-		time.Sleep(100 * time.Millisecond)
-       
+		displayWindow.OnWindowEvent(events.Common.WindowRuntimeReady, func(e *application.WindowEvent) {
+        log.Printf("WindowIsReady – sada postavljam fullscreen na odabrani monitor.")
+
+        
         if !targetScreen.IsPrimary {
             log.Printf("Postavljam prozor na ekran: %s (primary: %t)", targetScreen.Name, targetScreen.IsPrimary)
             log.Printf("Pozicija: (%d, %d)", targetScreen.Bounds.X, targetScreen.Bounds.Y)
@@ -119,15 +118,17 @@ func main() {
             displayWindow.SetPosition(0, 0)
         }
 
-        
+      
         time.Sleep(50 * time.Millisecond)
 
-        
+       
         displayWindow.Fullscreen()
         displayWindow.DisableSizeConstraints()
-      
-        displayWindow.Focus()
+        
+    })
+
     
+    displayWindow.Show()
 
 	
 		
