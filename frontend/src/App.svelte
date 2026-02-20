@@ -109,26 +109,88 @@
     }
   });
 
-  onMount(async () => {
-    audioContext = new AudioContext();
-    await loadSounds();
+  onMount(() => {
+  
+  audioContext = new AudioContext();
+  
+  
+  (async () => {
+    try {
+      await loadSounds();
+    } catch (error) {
+      console.error('Failed to load sounds:', error);
+    }
+  })();
 
-    const blockRightClick = (e: MouseEvent) => e.preventDefault();
-    window.addEventListener('contextmenu', blockRightClick);
+ 
+  const blockRightClick = (e: MouseEvent) => e.preventDefault();
+  window.addEventListener('contextmenu', blockRightClick);
 
-     if (isDisplay) {
-      Events.On("timer-update", (ev) => {
-        showMessage = false;
-        displayTime = ev.data;
-      });
+  
+  let unsubTimer: (() => void) | undefined;
+  let unsubComplete: (() => void) | undefined;
+  let handleKeyDown: ((e: KeyboardEvent) => void) | undefined;
 
-      Events.On("timer-complete", (ev) => {
-        showMessage = true;
-        displayMessage = ev.data;
+  if (isDisplay) {
+   
+    unsubTimer = Events.On("timer-update", (ev) => {
+      showMessage = false;
+      displayTime = ev.data;
+    });
+    
+    unsubComplete = Events.On("timer-complete", (ev) => {
+      showMessage = true;
+      displayMessage = ev.data;
+    });
+  } else {
+    
+    handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      if (e.code === 'Space') {
+        e.preventDefault(); 
+        if (!isRunning && !isPaused) {
+          handleStart();
+        } else if (isRunning) {
+          handlePause();
+        } else if (isPaused) {
+          handleStart();
+        }
+      }
+
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        handleCancel();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+  }
+
+  
+  return () => {
+    
+    window.removeEventListener('contextmenu', blockRightClick);
+    
+    if (handleKeyDown) {
+      window.removeEventListener('keydown', handleKeyDown);
+    }
+    
+   
+    if (unsubTimer) unsubTimer();
+    if (unsubComplete) unsubComplete();
+    
+    
+    if (audioContext && audioContext.state !== 'closed') {
+      audioContext.close().catch(err => {
+        console.error('Failed to close audio context:', err);
       });
     }
-
-  });
+    
+  
+  };
+});
 
   async function loadSounds() {
    
