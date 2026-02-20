@@ -40,7 +40,7 @@ func main() {
 
 	
 	mainWin := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title: "Window 1",
+		Title: "Timer Control Panel",
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,
@@ -59,7 +59,6 @@ func main() {
 	displayWindow := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "Timer Display",
 		AlwaysOnTop:  true,
-		Frameless: true,
 		URL: "/display",
 		Hidden: true,
 		
@@ -109,22 +108,28 @@ func main() {
 			targetScreen = primary
 		}
 
-		if !targetScreen.IsPrimary {
-			log.Printf("Postavljam prozor na ekran: %s and is Primary: %t", targetScreen.Name,targetScreen.IsPrimary)
-			log.Printf("Ekran dimenzije: %dx%d", targetScreen.Bounds.Width, targetScreen.Bounds.Height)
-			log.Printf("Ekran pozicija: (%d, %d)", targetScreen.Bounds.X, targetScreen.Bounds.Y)
-			displayWindow.SetPosition(targetScreen.Bounds.X, targetScreen.Bounds.Y)
-			
-			
-		}else{
-			displayWindow.SetPosition(0,0)
-		}
-		time.Sleep(500 * time.Millisecond) // Kratko čekanje da se prozor postavi prije fullscreen
-		displayWindow.Fullscreen()
-		displayWindow.DisableSizeConstraints()
-		displayWindow.Hide()
-	//	displayWindow.Show()
-	//	displayWindow.Focus()
+		displayWindow.Show()
+		time.Sleep(100 * time.Millisecond)
+       
+        if !targetScreen.IsPrimary {
+            log.Printf("Postavljam prozor na ekran: %s (primary: %t)", targetScreen.Name, targetScreen.IsPrimary)
+            log.Printf("Pozicija: (%d, %d)", targetScreen.Bounds.X, targetScreen.Bounds.Y)
+            displayWindow.SetPosition(targetScreen.Bounds.X, targetScreen.Bounds.Y)
+        } else {
+            displayWindow.SetPosition(0, 0)
+        }
+
+        
+        time.Sleep(50 * time.Millisecond)
+
+        
+        displayWindow.Fullscreen()
+        displayWindow.DisableSizeConstraints()
+      
+        displayWindow.Focus()
+    
+
+	
 		
 	})
 

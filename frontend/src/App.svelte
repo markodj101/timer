@@ -4,11 +4,9 @@
   import { GreetService } from "../bindings/changeme";
   import { FileReading } from "../bindings/changeme";
   import { Dialogs } from "@wailsio/runtime";
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
 
-  let name: string = '';
-  let result: string = 'Please enter your name below 👇';
-  let time: string = 'Listening for Time event...';
+  
   let path = window.location.pathname;
 
   
@@ -23,30 +21,98 @@
   
   let customTone: { id: string; name: string; url: string } | null = null;
 
-  let hours = 0, minutes = 5, seconds = 0;
-  let message = "Time is up!";
+  let minutes = 5, seconds = 0;
+  let totalSeconds = minutes * 60 + seconds;
+  let leftSeconds = totalSeconds;
+  let timerInterval: ReturnType<typeof setInterval> | null = null;
+  let displayTime = "00:00";
+  let message = "Vrijeme je isteklo!";
+  let displayMessage = "";
+  let showMessage = false;
   let volume = 80;
   let selectedTone = soundOptions[0];
-  let timeLeft = "00:05:00";
   let isRunning = false;
+  let isPaused = false;
   let audioContext: AudioContext;
   let audioBufferMap = new Map<string, AudioBuffer>();
   let currentSource: AudioBufferSourceNode | null = null;
   let currentGainNode: GainNode | null = null;
 
   function handleStart() {
+   if(isRunning)return;
+   if(leftSeconds <= 0){
+    leftSeconds = minutes * 60 + seconds;
+   }
     isRunning = true;
-    // Ovdje bi išao kod za pokretanje tajmera
+    isPaused = false;
+
+       timerInterval = setInterval(() => {
+      if (leftSeconds <= 0) {
+        clearInterval(timerInterval!);
+        timerInterval = null;
+        isRunning = false;
+        onTimerComplete();        
+      } else {
+        leftSeconds -= 1;
+        Events.Emit("timer-update", formattedTime);
+      }
+    }, 1000);
+
+
+  }
+
+  function handlePause() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    isRunning = false;
+    isPaused = true;
+    }
+
+   function onTimerComplete() {
+    playSound(selectedTone);
+     Events.Emit("timer-complete", message); 
+      isPaused = false; 
   }
 
   function handleCancel() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
     isRunning = false;
-    // Ovdje bi išao kod za zaustavljanje tajmera
+    isPaused = false;
+    leftSeconds = minutes * 60 + seconds;
+    Events.Emit("timer-update", formattedTime);
   }
+
+
+  onDestroy(() => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+  });
 
   onMount(async () => {
     audioContext = new AudioContext();
     await loadSounds();
+
+    const blockRightClick = (e: MouseEvent) => e.preventDefault();
+    window.addEventListener('contextmenu', blockRightClick);
+
+     if (path === '/display') {
+      Events.On("timer-update", (ev) => {
+        showMessage = false;
+        displayTime = ev.data;
+      });
+
+      Events.On("timer-complete", (ev) => {
+        showMessage = true;
+        displayMessage = ev.data;
+      });
+    }
+
   });
 
   async function loadSounds() {
@@ -72,7 +138,7 @@
       currentSource.stop();
     } catch (e) {}
     currentSource = null;
-    currentGainNode = null; // dodatno
+    currentGainNode = null;
   }
 
   if (!audioContext || audioContext.state === 'closed') {
@@ -102,12 +168,12 @@
   source.onended = () => {
     if (currentSource === source) {
       currentSource = null;
-      currentGainNode = null; // očisti i gain node
+      currentGainNode = null; 
     }
   };
 
   currentSource = source;
-  currentGainNode = gainNode; // sačuvaj referencu
+  currentGainNode = gainNode; 
   source.start();
 }
 
@@ -175,12 +241,36 @@
 
   $: if (currentGainNode) {
   currentGainNode.gain.value = volume / 100;
-}
+  }
+    $: if (!isRunning && !isPaused) {
+    leftSeconds = minutes * 60 + seconds;
+  }
+
+  $: formattedTime = (() => {
+    const mins = Math.floor(leftSeconds / 60);
+    const secs = leftSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  })();
+
+
+
 </script>
 
 <main>
   {#if path === '/display'}
-    <div class="fullscreen-timer"><h1>00:00</h1></div>
+    <div class="flex h-screen w-full items-center justify-center bg-[#1b2636] overflow-hidden">
+  <div class="text-center w-full px-4">
+    {#if showMessage}
+      <h1 class="text-8xl md:text-8xl font-bold tracking-tight animate-fade-in">
+        {displayMessage}
+      </h1>
+    {:else}
+      <h1 class="text-[35vw] font-medium leading-none tabular-nums tracking-tighter text-white">
+        {displayTime}
+      </h1>
+    {/if}
+  </div>
+</div>
   {:else}
     <div class="controls min-h-screen flex flex-col items-center p-6 py-12 ">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -249,7 +339,7 @@
                 <button
                   on:click={removeCustomTone}
                   class="p-3 bg-[#2a2e37] hover:bg-red-500/20 rounded-2xl border border-transparent hover:border-gray-600"
-                  title="Obriši ton"
+                  
                 >
                   <img src="/x-1-svgrepo-com.svg" class="w-4 h-4" alt="Remove">
         
@@ -260,7 +350,7 @@
                 on:click={handleFileSelect}
                 class="p-4 text-sm rounded-2xl text-left transition-all flex items-center justify-between bg-[#2a2e37] text-gray-400 hover:bg-gray-700 group border border-transparent hover:border-gray-600 w-full"
               >
-                <span class="font-medium flex items-center justify-center gap-2">
+                <span class="font-medium flex items-center justify-center gap-2 w-full">
                   Izaberi ton
                   <img src="/files-svgrepo-com.svg" class="w-5 h-5" alt="File">
                 </span>
@@ -288,27 +378,44 @@
 
       
       <div class="mt-12 flex justify-center items-center w-full gap-4">
-        {#if !isRunning}
-          <button
-            on:click={handleStart}
-            class="bg-blue-600 hover:bg-blue-700 border border-transparent hover:border-blue-500 text-white font-bold py-4 px-20 text-xl rounded-full transition-all active:scale-95 shadow-xl"
-          >
-            Start
-          </button>
-        {:else}
-          <button
-            on:click={handleCancel}
-            class="bg-[#2a2e37] hover:bg-gray-700 text-gray-400 font-bold py-4 px-20 text-xl rounded-full transition-all border border-gray-600"
-          >
-            <img src="/arrow-u-up-left-svgrepo-com.svg" alt="Reset" class="w-6 h-6">
-          </button>
-          <button
-            class="bg-blue-600 hover:bg-blue-700 border border-transparent hover:border-blue-500 text-white font-bold py-4 px-20 text-xl rounded-full transition-all active:scale-95 shadow-xl"
-          >
-            <img src="/pause-svgrepo-com.svg" alt="Pause" class="w-6 h-6">
-          </button>
-        {/if}
-      </div>
+  {#if !isRunning && !isPaused}
+    
+    <button
+      on:click={handleStart}
+      class="bg-blue-600 hover:bg-blue-700 border border-transparent hover:border-blue-500 text-white font-bold py-4 px-20 text-xl rounded-full transition-all active:scale-95 shadow-xl"
+    >
+      Start
+    </button>
+  {:else if isPaused}
+  
+    <button
+      on:click={handleStart}
+      class="bg-blue-600 hover:bg-blue-700 border border-transparent hover:border-blue-500 text-white font-bold py-4 px-20 text-xl rounded-full transition-all active:scale-95 shadow-xl"
+    >
+      <img src="/play-svgrepo-com.svg" class="w-6 h-6" alt="Play">
+    </button>
+    <button
+      on:click={handleCancel}
+      class="bg-[#2a2e37] hover:bg-gray-700 text-gray-400 font-bold py-4 px-20 text-xl rounded-full transition-all border border-gray-600"
+    >
+      <img src="/arrow-rotate-left-svgrepo-com.svg" alt="Reset" class="w-6 h-6">
+    </button>
+  {:else}
+    
+    <button
+      on:click={handlePause}
+      class="bg-blue-600 hover:bg-blue-700 border border-transparent hover:border-blue-500 text-white font-bold py-4 px-20 text-xl rounded-full transition-all active:scale-95 shadow-xl"
+    >
+      <img src="/pause-svgrepo-com.svg" alt="Pause" class="w-6 h-6">
+    </button>
+    <button
+      on:click={handleCancel}
+      class="bg-[#2a2e37] hover:bg-gray-700 text-gray-400 font-bold py-4 px-20 text-xl rounded-full transition-all border border-gray-600"
+    >
+      <img src="/arrow-rotate-left-svgrepo-com.svg" alt="Reset" class="w-6 h-6">
+    </button>
+  {/if}
+</div>
     </div>
   {/if}
 </main>
@@ -319,15 +426,12 @@
     background-color: #1b2636;
     color: white;
     overflow: hidden;
+    
+  
   }
 
-  .fullscreen-timer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    font-size: 10rem;
-  }
+ 
+
 
   /* Sakriva strelice za Chrome, Safari, Edge */
   input::-webkit-outer-spin-button,
