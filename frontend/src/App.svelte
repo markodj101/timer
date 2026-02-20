@@ -19,26 +19,38 @@
   ];
 
   
-  let customTone: { id: string; name: string; url: string } | null = null;
-
-  let minutes = 5, seconds = 0;
-  let totalSeconds = minutes * 60 + seconds;
-  let leftSeconds = totalSeconds;
+ 
+  let minutes = $state(5);
+  let seconds = $state(0);
+  let isRunning = $state(false);
+  let isPaused = $state(false);
+  let volume = $state(80);
+  let showMessage = $state(false);
+  let displayTime = $state("00:00");
+  let displayMessage = $state("");
+  let message = $state("Vrijeme je isteklo!");
+  let customTone = $state<{ id: string; name: string; url: string } | null>(null);
+  let selectedTone = $state(soundOptions[0]);
+  let totalSeconds = $derived(minutes * 60 + seconds);
+  let leftSeconds = $state(5 * 60);
   let timerInterval: ReturnType<typeof setInterval> | null = null;
-  let displayTime = "00:00";
-  let message = "Vrijeme je isteklo!";
-  let displayMessage = "";
-  let showMessage = false;
-  let volume = 80;
-  let selectedTone = soundOptions[0];
-  let isRunning = false;
-  let isPaused = false;
   let audioContext: AudioContext;
   let audioBufferMap = new Map<string, AudioBuffer>();
-  let currentSource: AudioBufferSourceNode | null = null;
-  let currentGainNode: GainNode | null = null;
+  let currentSource = $state<AudioBufferSourceNode | null>(null);
+  let currentGainNode = $state<GainNode | null>(null);
+  let params = new URLSearchParams(window.location.search);
+  let isDisplay = params.get('view') === 'display';
+
+  $effect(() => {
+    if (!isRunning && !isPaused) {
+      leftSeconds = totalSeconds;
+    }
+  });
 
   function handleStart() {
+    if (currentSource) {
+      currentSource.stop();
+    }
    if(isRunning)return;
    if(leftSeconds <= 0){
     leftSeconds = minutes * 60 + seconds;
@@ -84,7 +96,10 @@
     isRunning = false;
     isPaused = false;
     leftSeconds = minutes * 60 + seconds;
-    Events.Emit("timer-update", formattedTime);
+    const mins = Math.floor(leftSeconds / 60);
+    const secs = leftSeconds % 60;
+    const formatted = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    Events.Emit("timer-update", formatted);
   }
 
 
@@ -101,7 +116,7 @@
     const blockRightClick = (e: MouseEvent) => e.preventDefault();
     window.addEventListener('contextmenu', blockRightClick);
 
-     if (path === '/display') {
+     if (isDisplay) {
       Events.On("timer-update", (ev) => {
         showMessage = false;
         displayTime = ev.data;
@@ -239,25 +254,32 @@
     }
   }
 
-  $: if (currentGainNode) {
-  currentGainNode.gain.value = volume / 100;
+$effect(() => {
+  if (currentGainNode) {
+    currentGainNode.gain.value = volume / 100;
   }
-    $: if (!isRunning && !isPaused) {
-    leftSeconds = minutes * 60 + seconds;
-  }
+});
 
-  $: formattedTime = (() => {
+  
+  $effect(() => {
+    if (!isRunning && !isPaused) {
+      leftSeconds = minutes * 60 + seconds;
+    }
+  });
+
+
+ let formattedTime = $derived.by(() => {
     const mins = Math.floor(leftSeconds / 60);
     const secs = leftSeconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  })();
+});
 
 
 
 </script>
 
 <main>
-  {#if path === '/display'}
+  {#if isDisplay}
     <div class="flex h-screen w-full items-center justify-center bg-[#1b2636] overflow-hidden">
   <div class="text-center w-full px-4">
     {#if showMessage}
@@ -306,15 +328,15 @@
             <div class="grid grid-cols-1 gap-2">
               {#each soundOptions as tone}
                 <button
-                  on:click={() => { playSound(tone); selectedTone = tone; }}
+                  onclick={() => { playSound(tone); selectedTone = tone; }}
                   class="p-4 text-sm rounded-2xl text-left transition-all flex items-center justify-between group
-                    {selectedTone === tone
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
-                      : 'bg-[#2a2e37] text-gray-400 hover:bg-gray-700 border border-transparent hover:border-gray-600'}"
+  {selectedTone?.id === tone.id
+    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
+    : 'bg-[#2a2e37] text-gray-400 hover:bg-gray-700 border border-transparent hover:border-gray-600'}"
                 >
-                  <span class={selectedTone === tone ? 'font-bold' : 'font-medium'}>{tone.name}</span>
+                  <span class={selectedTone?.id === tone.id ? 'font-bold' : 'font-medium'}>{tone.name}</span>
 
-                  {#if selectedTone === tone}
+                  {#if selectedTone?.id === tone.id}
                     <img src="/volume-low-svgrepo-com.svg" class="w-5 h-5" alt="Volume-Icon" />
                   {/if}
                 </button>
@@ -325,19 +347,19 @@
             {#if customTone}
               <div class="flex items-center gap-2">
                 <button
-                  on:click={() => { if (customTone) { playSound(customTone); selectedTone = customTone; } }}
-                  class="flex-1 p-4 text-sm rounded-2xl text-left transition-all flex items-center justify-between group
-                    {selectedTone === customTone
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
-                      : 'bg-[#2a2e37] text-gray-400 hover:bg-gray-700 border border-transparent hover:border-gray-600'}"
+                  onclick={() => { if (customTone) { playSound(customTone); selectedTone = customTone; } }}
+                  class="p-4 text-sm rounded-2xl text-left transition-all flex items-center justify-between group gap-2
+  {selectedTone?.id === customTone?.id
+    ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/40'
+    : 'bg-[#2a2e37] text-gray-400 hover:bg-gray-700 border border-transparent hover:border-gray-600'}"
                 >
-                  <span class={selectedTone === customTone ? 'font-bold' : 'font-medium'}>{customTone.name}</span>
-                  {#if selectedTone === customTone}
+                  <span class ={selectedTone?.id === customTone?.id ? 'font-bold' : 'font-medium'}>{customTone.name}</span>
+                  {#if selectedTone?.id === customTone?.id}
                     <img src="/volume-low-svgrepo-com.svg" class="w-5 h-5" alt="Volume-Icon" />
                   {/if}
                 </button>
                 <button
-                  on:click={removeCustomTone}
+                  onclick={removeCustomTone}
                   class="p-3 bg-[#2a2e37] hover:bg-red-500/20 rounded-2xl border border-transparent hover:border-gray-600"
                   
                 >
@@ -347,7 +369,7 @@
               </div>
             {:else}
               <button
-                on:click={handleFileSelect}
+                onclick={handleFileSelect}
                 class="p-4 text-sm rounded-2xl text-left transition-all flex items-center justify-between bg-[#2a2e37] text-gray-400 hover:bg-gray-700 group border border-transparent hover:border-gray-600 w-full"
               >
                 <span class="font-medium flex items-center justify-center gap-2 w-full">
@@ -381,7 +403,7 @@
   {#if !isRunning && !isPaused}
     
     <button
-      on:click={handleStart}
+      onclick={handleStart}
       class="bg-blue-600 hover:bg-blue-700 border border-transparent hover:border-blue-500 text-white font-bold py-4 px-20 text-xl rounded-full transition-all active:scale-95 shadow-xl"
     >
       Start
@@ -389,13 +411,13 @@
   {:else if isPaused}
   
     <button
-      on:click={handleStart}
+      onclick={handleStart}
       class="bg-blue-600 hover:bg-blue-700 border border-transparent hover:border-blue-500 text-white font-bold py-4 px-20 text-xl rounded-full transition-all active:scale-95 shadow-xl"
     >
       <img src="/play-svgrepo-com.svg" class="w-6 h-6" alt="Play">
     </button>
     <button
-      on:click={handleCancel}
+      onclick={handleCancel}
       class="bg-[#2a2e37] hover:bg-gray-700 text-gray-400 font-bold py-4 px-20 text-xl rounded-full transition-all border border-gray-600"
     >
       <img src="/arrow-rotate-left-svgrepo-com.svg" alt="Reset" class="w-6 h-6">
@@ -403,13 +425,13 @@
   {:else}
     
     <button
-      on:click={handlePause}
+      onclick={handlePause}
       class="bg-blue-600 hover:bg-blue-700 border border-transparent hover:border-blue-500 text-white font-bold py-4 px-20 text-xl rounded-full transition-all active:scale-95 shadow-xl"
     >
       <img src="/pause-svgrepo-com.svg" alt="Pause" class="w-6 h-6">
     </button>
     <button
-      on:click={handleCancel}
+      onclick={handleCancel}
       class="bg-[#2a2e37] hover:bg-gray-700 text-gray-400 font-bold py-4 px-20 text-xl rounded-full transition-all border border-gray-600"
     >
       <img src="/arrow-rotate-left-svgrepo-com.svg" alt="Reset" class="w-6 h-6">

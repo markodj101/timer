@@ -10,7 +10,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
-
+//go:embed all:frontend/dist
 var assets embed.FS
 
 func init() {
@@ -31,6 +31,7 @@ func main() {
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
+			
 		},
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
@@ -58,7 +59,7 @@ func main() {
 
 	displayWindow := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "Timer Display",
-		URL: "/display",
+		URL: "//?view=display",
 		Hidden: true,
 		
 	})
