@@ -1,59 +1,66 @@
-# Welcome to Your New Wails3 Project!
+# Wails3 Timer (Conference Edition)
 
-Congratulations on generating your Wails3 application! This README will guide you through the next steps to get your project up and running.
+Ovo je moćan alat za upravljanje vremenom namijenjen kongresima i događajima. Aplikacija omogućava potpunu kontrolu tajmera na glavnom monitoru, dok se prikaz za publiku emituje na sekundarnom ekranu.
 
-## Getting Started
+*(Zamijeni putanju do svog screenshot-a)*
 
-1. Navigate to your project directory in the terminal.
+## Glavne Funkcionalnosti
 
-2. To run your application in development mode, use the following command:
+* **Svelte + Wails3:** Ultra brzi frontend uparen sa stabilnim Go backendom.
+* **Multi-Screen Support:** Automatska detekcija i podrška za projektore/eksterne monitore (Public View).
+* **Customization:** * Prilagođavanje teksta i vremena.
+* **Custom Sound (IPC):** Podrška za prilagođene zvukove upozorenja putem IPC komunikacije.
 
-   ```
-   wails3 dev
-   ```
 
-   This will start your application and enable hot-reloading for both frontend and backend changes.
+* **Cross-Platform:** Potpuna podrška za **Linux** i **Windows 11**.
 
-3. To build your application for production, use:
+---
 
-   ```
-   wails3 build
-   ```
+## Instalacija i Pokretanje
 
-   This will create a production-ready executable in the `build` directory.
+### Preduslovi
 
-## Exploring Wails3 Features
+* **Go** 1.25.x ili noviji
+* **Node.js** v22+ i **npm**
+* **Wails v3 Alpha** (`go install github.com/wailsapp/wails/v3/cmd/wails3@latest`)
+* *(Samo za Linux)*: `libwebkit2gtk-4.1-dev`
 
-Now that you have your project set up, it's time to explore the features that Wails3 offers:
+### Razvoj (Development)
 
-1. **Check out the examples**: The best way to learn is by example. Visit the `examples` directory in the `v3/examples` directory to see various sample applications.
+Da pokreneš aplikaciju sa "hot-reload" funkcijom (izmjene se vide odmah):
 
-2. **Run an example**: To run any of the examples, navigate to the example's directory and use:
+```bash
+wails3 dev
 
-   ```
-   go run .
-   ```
+```
 
-   Note: Some examples may be under development during the alpha phase.
+### Produkcija (Build)
 
-3. **Explore the documentation**: Visit the [Wails3 documentation](https://v3.wails.io/) for in-depth guides and API references.
+Za kreiranje izvršnog fajla u `build` direktorijumu:
 
-4. **Join the community**: Have questions or want to share your progress? Join the [Wails Discord](https://discord.gg/JDdSxwjhGf) or visit the [Wails discussions on GitHub](https://github.com/wailsapp/wails/discussions).
+```bash
+wails3 build
 
-## Project Structure
+```
 
-Take a moment to familiarize yourself with your project structure:
+---
 
-- `frontend/`: Contains your frontend code (HTML, CSS, JavaScript/TypeScript)
-- `main.go`: The entry point of your Go backend
-- `app.go`: Define your application structure and methods here
-- `wails.json`: Configuration file for your Wails project
+## Struktura Projekta
 
-## Next Steps
+* `frontend/` - Svelte aplikacija (UI/UX).
+* `main.go` - Glavni ulaz u Go backend i konfiguracija prozora.
+* `app.go` - Backend logika, servisi za čitanje fajlova i zvukova.
+* `frontend/dist` - Lokacija kompajliranog frontenda (embedovan u binary).
 
-1. Modify the frontend in the `frontend/` directory to create your desired UI.
-2. Add backend functionality in `main.go`.
-3. Use `wails3 dev` to see your changes in real-time.
-4. When ready, build your application with `wails3 build`.
+---
 
-Happy coding with Wails3! If you encounter any issues or have questions, don't hesitate to consult the documentation or reach out to the Wails community.
+## Podrška za ekrane (Linux/Win)
+
+Aplikacija je optimizovana za rad sa više monitora:
+
+1. **Kontrolni panel:** Otvara se na primarnom monitoru.
+2. **Display View:** Automatski traži sekundarni monitor i širi se preko cijelog ekrana (Fullscreen).
+
+---
+
+### Screenshots:
