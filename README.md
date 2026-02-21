@@ -4,6 +4,8 @@ Ovo je moćan alat za upravljanje vremenom namijenjen kongresima i događajima. 
 
 <img src="./frontend/public/Main Window.png" alt="Timer App Screenshot" width="600">
 <img src="./frontend/public/Dispaly Window.png" alt="Timer App Screenshot" width="600">
+
+
 ## Glavne Funkcionalnosti
 
 * **Svelte + Wails3:** Ultra brzi frontend uparen sa stabilnim Go backendom.
