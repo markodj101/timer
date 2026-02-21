@@ -66,5 +66,6 @@ Aplikacija je optimizovana za rad sa više monitora:
 ---
 
 ### To Do:
-[] Tajmer na glavnom ekranu: Vizuelni prikaz za operatera.
-[] Popraviti tekst za instlacione fajlove.
+[ ] Tajmer na glavnom ekranu: Vizuelni prikaz za operatera.
+
+[ ] Popraviti tekst za instlacione fajlove.
