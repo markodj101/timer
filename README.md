@@ -63,4 +63,4 @@ Aplikacija je optimizovana za rad sa više monitora:
 
 ---
 
-### Screenshots:
+### To Do:
