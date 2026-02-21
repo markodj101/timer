@@ -2,8 +2,8 @@
 
 Ovo je moćan alat za upravljanje vremenom namijenjen kongresima i događajima. Aplikacija omogućava potpunu kontrolu tajmera na glavnom monitoru, dok se prikaz za publiku emituje na sekundarnom ekranu.
 
-*(Zamijeni putanju do svog screenshot-a)*
 <img src="./frontend/public/Main Window.png" alt="Timer App Screenshot" width="600">
+<img src="./frontend/public/Display Window.png" alt="Timer App Screenshot" width="600">
 ## Glavne Funkcionalnosti
 
 * **Svelte + Wails3:** Ultra brzi frontend uparen sa stabilnim Go backendom.
