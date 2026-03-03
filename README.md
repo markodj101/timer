@@ -1,59 +1,71 @@
-# Welcome to Your New Wails3 Project!
+# Wails3 Timer (Conference Edition)
 
-Congratulations on generating your Wails3 application! This README will guide you through the next steps to get your project up and running.
+Ovo je moćan alat za upravljanje vremenom namijenjen kongresima i događajima. Aplikacija omogućava potpunu kontrolu tajmera na glavnom monitoru, dok se prikaz za publiku emituje na sekundarnom ekranu.
 
-## Getting Started
+<img src="./frontend/public/Main Window.png" alt="Timer App Screenshot" width="600">
+<img src="./frontend/public/Dispaly Window.png" alt="Timer App Screenshot" width="600">
 
-1. Navigate to your project directory in the terminal.
 
-2. To run your application in development mode, use the following command:
+## Glavne Funkcionalnosti
 
-   ```
-   wails3 dev
-   ```
+* **Svelte + Wails3:** Ultra brzi frontend uparen sa stabilnim Go backendom.
+* **Multi-Screen Support:** Automatska detekcija i podrška za projektore/eksterne monitore (Public View).
+* **Customization:** * Prilagođavanje teksta i vremena.
+* **Custom Sound (IPC):** Podrška za prilagođene zvukove upozorenja putem IPC komunikacije.
 
-   This will start your application and enable hot-reloading for both frontend and backend changes.
 
-3. To build your application for production, use:
+* **Cross-Platform:** Potpuna podrška za **Linux** i **Windows 11**.
 
-   ```
-   wails3 build
-   ```
+---
 
-   This will create a production-ready executable in the `build` directory.
+## Instalacija i Pokretanje
 
-## Exploring Wails3 Features
+### Preduslovi
 
-Now that you have your project set up, it's time to explore the features that Wails3 offers:
+* **Go** 1.25.x ili noviji
+* **Node.js** v22+ i **npm**
+* **Wails v3 Alpha** (`go install github.com/wailsapp/wails/v3/cmd/wails3@latest`)
+* *(Samo za Linux)*: `libwebkit2gtk-4.1-dev`
 
-1. **Check out the examples**: The best way to learn is by example. Visit the `examples` directory in the `v3/examples` directory to see various sample applications.
+### Razvoj (Development)
 
-2. **Run an example**: To run any of the examples, navigate to the example's directory and use:
+Da pokreneš aplikaciju sa "hot-reload" funkcijom (izmjene se vide odmah):
 
-   ```
-   go run .
-   ```
+```bash
+wails3 dev
 
-   Note: Some examples may be under development during the alpha phase.
+```
 
-3. **Explore the documentation**: Visit the [Wails3 documentation](https://v3.wails.io/) for in-depth guides and API references.
+### Produkcija (Build)
 
-4. **Join the community**: Have questions or want to share your progress? Join the [Wails Discord](https://discord.gg/JDdSxwjhGf) or visit the [Wails discussions on GitHub](https://github.com/wailsapp/wails/discussions).
+Za kreiranje izvršnog fajla u `build` direktorijumu:
 
-## Project Structure
+```bash
+wails3 build
 
-Take a moment to familiarize yourself with your project structure:
+```
 
-- `frontend/`: Contains your frontend code (HTML, CSS, JavaScript/TypeScript)
-- `main.go`: The entry point of your Go backend
-- `app.go`: Define your application structure and methods here
-- `wails.json`: Configuration file for your Wails project
+---
 
-## Next Steps
+## Struktura Projekta
 
-1. Modify the frontend in the `frontend/` directory to create your desired UI.
-2. Add backend functionality in `main.go`.
-3. Use `wails3 dev` to see your changes in real-time.
-4. When ready, build your application with `wails3 build`.
+* `frontend/` - Svelte aplikacija (UI/UX).
+* `main.go` - Glavni ulaz u Go backend i konfiguracija prozora.
+* `app.go` - Backend logika, servisi za čitanje fajlova i zvukova.
+* `frontend/dist` - Lokacija kompajliranog frontenda (embedovan u binary).
 
-Happy coding with Wails3! If you encounter any issues or have questions, don't hesitate to consult the documentation or reach out to the Wails community.
+---
+
+## Podrška za ekrane (Linux/Win)
+
+Aplikacija je optimizovana za rad sa više monitora:
+
+1. **Kontrolni panel:** Otvara se na primarnom monitoru.
+2. **Display View:** Automatski traži sekundarni monitor i širi se preko cijelog ekrana (Fullscreen).
+
+---
+
+### To Do:
+[ ] Tajmer na glavnom ekranu: Vizuelni prikaz za operatera.
+
+[ ] Popraviti tekst za instlacione fajlove.
