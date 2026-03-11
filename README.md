@@ -66,6 +66,8 @@ Aplikacija je optimizovana za rad sa više monitora:
 ---
 
 ### To Do:
-[ ] Tajmer na glavnom ekranu: Vizuelni prikaz za operatera.
+- [x] Tajmer na glavnom ekranu: Vizuelni prikaz za operatera.
+- [ ] Popraviti tekst za instlacione fajlove.
+- [ ] Ticking sound 5 sekundi prije kraja (toggle + custom)
+- [ ] Veći font za "Vrijeme je isteklo!" poruku
 
-[ ] Popraviti tekst za instlacione fajlove.
